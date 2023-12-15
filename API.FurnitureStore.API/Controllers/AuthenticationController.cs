@@ -71,8 +71,8 @@ namespace API.FurnitureStore.API.Controllers
             return BadRequest(new AuthResult
             {
                 Result = false,
-                Errors = new List<string> { "User couldn't be created"}
-            })
+                Errors = new List<string> { "User couldn't be created" }
+            });
         }
     }
 }
