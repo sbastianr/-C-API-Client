@@ -5,6 +5,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace API.FurnitureStore.API.Controllers
 {
@@ -28,7 +32,7 @@ namespace API.FurnitureStore.API.Controllers
 
             //Verify if email exist
             var emailExists = await _userManager.FindByEmailAsync(userRegistrationRequestDto.EmailAddress);
-            if (emailExists != null) 
+            if (emailExists != null)
                 return BadRequest(new AuthResult()
                 {
                     Result = false,
@@ -53,7 +57,7 @@ namespace API.FurnitureStore.API.Controllers
                 {
                     Result = true,
                     Token = token
-                })
+                });
             }
             else
             {
@@ -63,7 +67,7 @@ namespace API.FurnitureStore.API.Controllers
 
                 return BadRequest(new AuthResult
                 {
-                    Result= false,
+                    Result = false,
                     Errors = errors
                 });
             }
@@ -74,5 +78,27 @@ namespace API.FurnitureStore.API.Controllers
                 Errors = new List<string> { "User couldn't be created" }
             });
         }
+
+            
+        private String GenerateToken(IdentityUser user)
+        {
+            var jwtTokenHandler = new JwtSecurityTokenHandler();
+
+            var key = Encoding.UTF8.GetBytes(_jwtConfig.Secret);
+
+            var tokenDescriptor = new SecurityTokenDescriptor()
+            {
+                Subject = new ClaimsIdentity(new ClaimsIdentity(new[]
+                {
+                    new Claim("Id", user.Id),
+                    new Claim(JwtRegisteredClaimNames.Sub, user.Email),
+                    new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                    new Claim(JwtRegisteredClaimNames.Iat, DateTime.Now.ToUniversalTime().ToString())
+                }
+                ))
+            };
+        }
+
     }
 }
